@@ -8,8 +8,8 @@
 #include "secrets.h"
 
 const int MQTT_PORT = 8883;
-const char MQTT_SUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/update";
-const char MQTT_PUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/update";
+const char MQTT_SUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/sub";
+const char MQTT_PUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/pub";
 
 uint8_t DST = 0;
 WiFiClientSecure net;
@@ -104,18 +104,20 @@ void checkWiFiThenMQTT(void)
 
 void sendData(void)
 {
+  Serial.print("coming from serial: ");
+  Serial.println(Serial.read());
+
   DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(3) + 100);
 
   JsonObject root           = jsonBuffer.to<JsonObject>();
   JsonObject state          = root.createNestedObject("state");
   JsonObject state_reported = state.createNestedObject("reported");
 
-  state_reported["value"] = random(100);
+  // read data coming from Uno board
+  state_reported["values"] = Serial.readString();
 
   Serial.printf("Sending  [%s]: ", MQTT_PUB_TOPIC);
   serializeJson(root, Serial);
-
-  Serial.println();
 
   char shadow[measureJson(root) + 1];
 
@@ -127,7 +129,7 @@ void sendData(void)
 
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(9600);
   delay(5000);
   Serial.println();
   Serial.println();
