@@ -36,7 +36,7 @@ void NTPConnect(void)
     now = time(nullptr);
   }
 
-  Serial.println("done!");
+  Serial.println(" done!");
   struct tm timeinfo;
   gmtime_r(&now, &timeinfo);
 
@@ -57,30 +57,6 @@ void messageReceived(char *topic, byte *payload, unsigned int length)
   Serial.println();
 }
 
-void pubSubErr(int8_t MQTTErr)
-{
-  if (MQTTErr == MQTT_CONNECTION_TIMEOUT)
-    Serial.print("Connection tiemout");
-  else if (MQTTErr == MQTT_CONNECTION_LOST)
-    Serial.print("Connection lost");
-  else if (MQTTErr == MQTT_CONNECT_FAILED)
-    Serial.print("Connect failed");
-  else if (MQTTErr == MQTT_DISCONNECTED)
-    Serial.print("Disconnected");
-  else if (MQTTErr == MQTT_CONNECTED)
-    Serial.print("Connected");
-  else if (MQTTErr == MQTT_CONNECT_BAD_PROTOCOL)
-    Serial.print("Connect bad protocol");
-  else if (MQTTErr == MQTT_CONNECT_BAD_CLIENT_ID)
-    Serial.print("Connect bad Client-ID");
-  else if (MQTTErr == MQTT_CONNECT_UNAVAILABLE)
-    Serial.print("Connect unavailable");
-  else if (MQTTErr == MQTT_CONNECT_BAD_CREDENTIALS)
-    Serial.print("Connect bad credentials");
-  else if (MQTTErr == MQTT_CONNECT_UNAUTHORIZED)
-    Serial.print("Connect unauthorized");
-}
-
 void connectToMqtt(bool nonBlocking = false)
 {
   Serial.print("MQTT connecting ");
@@ -88,11 +64,11 @@ void connectToMqtt(bool nonBlocking = false)
     if (client.connect(THINGNAME)) {
       Serial.println("connected!");
       if (!client.subscribe(MQTT_SUB_TOPIC)) {
-        pubSubErr(client.state());
+        Serial.println(client.state());
       }
     } else {
       Serial.print("failed, reason -> ");
-      pubSubErr(client.state());
+      Serial.println(client.state());
       if (!nonBlocking) {
         Serial.println(" < try again in 5 seconds");
         delay(5000);
@@ -116,7 +92,7 @@ void connectToWiFi(String init_str)
     delay(1000);
   }
   if (init_str != emptyString) {
-    Serial.println("ok!");
+    Serial.println(" ok!");
   }
 }
 
@@ -124,25 +100,6 @@ void checkWiFiThenMQTT(void)
 {
   connectToWiFi("Checking WiFi");
   connectToMqtt();
-}
-
-unsigned long previousMillis = 0;
-const long interval = 5000;
-
-void checkWiFiThenMQTTNonBlocking(void)
-{
-  connectToWiFi(emptyString);
-  if (millis() - previousMillis >= interval && !client.connected()) {
-    previousMillis = millis();
-    connectToMqtt(true);
-  }
-}
-
-void checkWiFiThenReboot(void)
-{
-  connectToWiFi("Checking WiFi");
-  Serial.print("Rebooting");
-  ESP.restart();
 }
 
 void sendData(void)
@@ -164,7 +121,7 @@ void sendData(void)
 
   serializeJson(root, shadow, sizeof(shadow));
   if (!client.publish(MQTT_PUB_TOPIC, shadow, false)) {
-    pubSubErr(client.state());
+    Serial.println(client.state());
   }
 }
 
@@ -197,8 +154,6 @@ void loop()
   now = time(nullptr);
   if (!client.connected()) {
     checkWiFiThenMQTT();
-    //checkWiFiThenMQTTNonBlocking();
-    //checkWiFiThenReboot();
   } else {
     client.loop();
     if (millis() - lastMillis > 5000) {
