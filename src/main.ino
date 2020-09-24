@@ -128,8 +128,17 @@ void sendDataToAWS(void)
 {
   StaticJsonDocument<200> doc;
 
-  doc["time"]   = String(millis());
-  doc["values"] = Serial.readString();  // read data coming from Uno board
+  // read data coming from Uno board and put into variable "doc"
+  DeserializationError error = deserializeJson(doc, Serial.readString());
+
+  // Test if parsing succeeds.
+  if (error) {
+    Serial.print(F("deserializeJson() failed."));
+    return;
+  }
+
+  // parsing succeeded, continue and set time
+  doc["time"] = String(millis());
 
   char jsonBuffer[512];
   serializeJson(doc, jsonBuffer);
