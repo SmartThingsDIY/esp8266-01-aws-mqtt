@@ -16,9 +16,10 @@ const char MQTT_PUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/pub";
 
 uint8_t DST = 0;
 WiFiClientSecure net;
-SoftwareSerial UnoBoard(10, 11); // make RX Arduino line is pin 2, make TX Arduino line is pin 3.
-                                 // This means that you need to connect the TX line from the esp to the Arduino's pin 2
-                                 // and the RX line from the esp to the Arduino's pin 3
+
+// ESP TX => Uno Pin 2 (2 in binary is 10)
+// ESP RX => Uno Pin 3 (3 in binary is 11)
+SoftwareSerial UnoBoard(10, 11);
 
 BearSSL::X509List cert(cacert);
 BearSSL::X509List client_crt(client_cert);
