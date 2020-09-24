@@ -1,3 +1,9 @@
+/**
+  Reads data from RX pin, packages it into a Json object and sends it to AWS IoT, then responds through pin TX to the Arduino Board listening on the other side
+  @author MecaHumArduino
+  @version 3.0
+*/
+
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <SoftwareSerial.h>
@@ -47,6 +53,7 @@ void NTPConnect(void)
 
   Serial.println(" done!");
   sendDataToUno(" done!\r\n", 1000, DEBUG);
+
   struct tm timeinfo;
   gmtime_r(&now, &timeinfo);
 
@@ -127,7 +134,7 @@ void sendDataToAWS(void)
 
   // read data coming from Uno board
 
-  state_reported["values"] = Serial.readStringUntil('\r\n');
+  state_reported["values"] = Serial.readString();
 
   Serial.printf("Sending  [%s]: ", MQTT_PUB_TOPIC);
   serializeJson(root, Serial);
