@@ -104,9 +104,6 @@ void checkWiFiThenMQTT(void)
 
 void sendData(void)
 {
-  Serial.print("coming from serial: ");
-  Serial.println(Serial.read());
-
   DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(3) + 100);
 
   JsonObject root           = jsonBuffer.to<JsonObject>();
@@ -114,7 +111,9 @@ void sendData(void)
   JsonObject state_reported = state.createNestedObject("reported");
 
   // read data coming from Uno board
+  // state_reported["values"] = Serial.read();
   state_reported["values"] = Serial.readString();
+  // state_reported["values"] = Serial.readStringUntil('\r\n');
 
   Serial.printf("Sending  [%s]: ", MQTT_PUB_TOPIC);
   serializeJson(root, Serial);
@@ -131,8 +130,6 @@ void setup()
 {
   Serial.begin(9600);
   delay(5000);
-  Serial.println();
-  Serial.println();
 
   WiFi.hostname(THINGNAME);
   WiFi.mode(WIFI_STA);
