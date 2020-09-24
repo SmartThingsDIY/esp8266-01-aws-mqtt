@@ -1,18 +1,24 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
+#include <SoftwareSerial.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson (use v6.xx)
 #include <time.h>
+
+#define DEBUG true
 #define emptyString String()
 
 #include "secrets.h"
 
-const int MQTT_PORT = 8883;
+const int MQTT_PORT         = 8883;
 const char MQTT_SUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/sub";
 const char MQTT_PUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/pub";
 
 uint8_t DST = 0;
 WiFiClientSecure net;
+SoftwareSerial UnoBoard(10, 11); // make RX Arduino line is pin 2, make TX Arduino line is pin 3.
+                                 // This means that you need to connect the TX line from the esp to the Arduino's pin 2
+                                 // and the RX line from the esp to the Arduino's pin 3
 
 BearSSL::X509List cert(cacert);
 BearSSL::X509List client_crt(client_cert);
@@ -27,6 +33,8 @@ time_t nowish = 1510592825;
 void NTPConnect(void)
 {
   Serial.print("Setting time using SNTP");
+  sendDataToUno("Setting time using SNTP\r\n", 1000, DEBUG);
+
   configTime(TIME_ZONE * 3600, DST * 3600, "pool.ntp.org", "time.nist.gov");
   now = time(nullptr);
 
@@ -37,6 +45,7 @@ void NTPConnect(void)
   }
 
   Serial.println(" done!");
+  sendDataToUno(" done!\r\n", 1000, DEBUG);
   struct tm timeinfo;
   gmtime_r(&now, &timeinfo);
 
@@ -60,9 +69,12 @@ void messageReceived(char *topic, byte *payload, unsigned int length)
 void connectToMqtt(bool nonBlocking = false)
 {
   Serial.print("MQTT connecting ");
+  sendDataToUno("MQTT connecting \r\n", 1000, DEBUG);
+
   while (!client.connected()) {
     if (client.connect(THINGNAME)) {
       Serial.println("connected!");
+      sendDataToUno("connected! \r\n", 1000, DEBUG);
       if (!client.subscribe(MQTT_SUB_TOPIC)) {
         Serial.println(client.state());
       }
@@ -99,10 +111,12 @@ void connectToWiFi(String init_str)
 void checkWiFiThenMQTT(void)
 {
   connectToWiFi("Checking WiFi");
+  sendDataToUno("Checking WiFi \r\n", 1000, DEBUG);
+
   connectToMqtt();
 }
 
-void sendData(void)
+void sendDataToAWS(void)
 {
   DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(3) + 100);
 
@@ -111,9 +125,8 @@ void sendData(void)
   JsonObject state_reported = state.createNestedObject("reported");
 
   // read data coming from Uno board
-  // state_reported["values"] = Serial.read();
-  state_reported["values"] = Serial.readString();
-  // state_reported["values"] = Serial.readStringUntil('\r\n');
+
+  state_reported["values"] = Serial.readStringUntil('\r\n');
 
   Serial.printf("Sending  [%s]: ", MQTT_PUB_TOPIC);
   serializeJson(root, Serial);
@@ -126,9 +139,34 @@ void sendData(void)
   }
 }
 
+String sendDataToUno(String command, const int timeout, boolean debug)
+{
+  String response = "";
+  UnoBoard.print(command); // send the read character to the Uno
+  long int time = millis();
+
+  while( (time+timeout) > millis()) {
+    while(UnoBoard.available()) {
+      // The esp has data so display its output to the serial window
+      char c = UnoBoard.read(); // read the next character.
+      response+=c;
+    }
+  }
+
+  if (debug) {
+    Serial.print(response);
+  }
+
+  return response;
+}
+
+
 void setup()
 {
   Serial.begin(9600);
+  Serial.println("starting setup");
+
+  UnoBoard.begin(9600); // your esp's baud rate might be different
   delay(5000);
 
   WiFi.hostname(THINGNAME);
@@ -157,7 +195,7 @@ void loop()
     client.loop();
     if (millis() - lastMillis > 5000) {
       lastMillis = millis();
-      sendData();
+      sendDataToAWS();
     }
   }
 }
