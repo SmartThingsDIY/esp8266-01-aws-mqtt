@@ -126,23 +126,16 @@ void checkWiFiThenMQTT(void)
 
 void sendDataToAWS(void)
 {
-  DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(3) + 100);
+  StaticJsonDocument<200> doc;
 
-  JsonObject root           = jsonBuffer.to<JsonObject>();
-  JsonObject state          = root.createNestedObject("state");
-  JsonObject state_reported = state.createNestedObject("reported");
+  doc["time"]   = String(millis());
+  doc["values"] = Serial.readString();  // read data coming from Uno board
 
-  // read data coming from Uno board
-
-  state_reported["values"] = Serial.readString();
+  char jsonBuffer[512];
+  serializeJson(doc, jsonBuffer);
 
   Serial.printf("Sending  [%s]: ", MQTT_PUB_TOPIC);
-  serializeJson(root, Serial);
-
-  char shadow[measureJson(root) + 1];
-
-  serializeJson(root, shadow, sizeof(shadow));
-  if (!client.publish(MQTT_PUB_TOPIC, shadow, false)) {
+  if (!client.publish(MQTT_PUB_TOPIC, jsonBuffer, false)) {
     Serial.println(client.state());
   }
 }
