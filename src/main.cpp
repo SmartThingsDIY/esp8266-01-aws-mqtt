@@ -16,7 +16,6 @@
 #define DEBUG true
 
 const int MQTT_PORT         = 8883;
-const char MQTT_SUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/sub";
 const char MQTT_PUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/pub";
 
 uint8_t DST = 0;
@@ -93,14 +92,11 @@ void connectToMqtt()
     if (client.connect(THINGNAME)) {
       Serial.println("connected!");
       sendDataToUno("connected! \r\n", 1000, DEBUG);
-      if (!client.subscribe(MQTT_SUB_TOPIC)) {
-        Serial.println(client.state());
-      }
     } else {
       Serial.print("failed, reason -> ");
       Serial.println(client.state());
-        Serial.println(" < try again in 5 seconds");
-        delay(5000);
+      Serial.println(" < try again in 5 seconds");
+      delay(5000);
     }
   }
 }
