@@ -4,17 +4,16 @@
   @version 3.0
 */
 
-#include <ESP8266WiFi.h>
-#include <WiFiClientSecure.h>
-#include <SoftwareSerial.h>
-#include <PubSubClient.h>
-#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson (use v6.xx)
 #include <time.h>
+#include "secrets.h"
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson (use v6.xx)
+#include <PubSubClient.h>
+#include <SoftwareSerial.h>
+#include <WiFiClientSecure.h>
 
 #define DEBUG true
-#define emptyString String()
-
-#include "secrets.h"
 
 const int MQTT_PORT         = 8883;
 const char MQTT_SUB_TOPIC[] = "$aws/things/" THINGNAME "/shadow/sub";
@@ -36,6 +35,15 @@ PubSubClient client(net);
 unsigned long lastMillis = 0;
 time_t now;
 time_t nowish = 1510592825;
+
+// declaring custom function to follow C++ validation rules
+void connectToMqtt();
+void NTPConnect(void);
+void sendDataToAWS(void);
+void checkWiFiThenMQTT(void);
+void connectToWiFi(String init_str);
+void messageReceived(char *topic, byte *payload, unsigned int length);
+String sendDataToUno(String command, const int timeout, boolean debug);
 
 void NTPConnect(void)
 {
@@ -74,7 +82,7 @@ void messageReceived(char *topic, byte *payload, unsigned int length)
   Serial.println();
 }
 
-void connectToMqtt(bool nonBlocking = false)
+void connectToMqtt()
 {
   Serial.print("MQTT connecting ");
   sendDataToUno("MQTT connecting \r\n", 1000, DEBUG);
@@ -89,31 +97,22 @@ void connectToMqtt(bool nonBlocking = false)
     } else {
       Serial.print("failed, reason -> ");
       Serial.println(client.state());
-      if (!nonBlocking) {
         Serial.println(" < try again in 5 seconds");
         delay(5000);
-      } else {
-        Serial.println(" <");
-      }
-    }
-    if (nonBlocking) {
-      break;
     }
   }
 }
 
 void connectToWiFi(String init_str)
 {
-  if (init_str != emptyString) {
-    Serial.print(init_str);
-  }
+  Serial.print(init_str);
+
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
   }
-  if (init_str != emptyString) {
-    Serial.println(" ok!");
-  }
+
+  Serial.println(" ok!");
 }
 
 void checkWiFiThenMQTT(void)
