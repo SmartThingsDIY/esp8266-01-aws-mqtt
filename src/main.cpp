@@ -35,7 +35,6 @@ unsigned long lastMillis = 0;
 time_t now;
 time_t nowish = 1510592825;
 
-// declaring custom function to follow C++ validation rules
 // **************
 void connectToMqtt();
 void NTPConnect(void);
@@ -44,6 +43,8 @@ void checkWiFiThenMQTT(void);
 void connectToWiFi(String init_str);
 void messageReceived(char *topic, byte *payload, unsigned int length);
 String sendDataToUno(String command, const int timeout, boolean debug);
+void setup();
+void loop();
 // **************
 
 void NTPConnect(void)
