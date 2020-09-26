@@ -106,6 +106,10 @@ void connectToWiFi(String init_str)
 {
   Serial.print(init_str);
 
+  WiFi.hostname(THINGNAME);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(1000);
@@ -176,10 +180,6 @@ void setup()
 
   UnoBoard.begin(9600); // your esp's baud rate might be different
   delay(5000);
-
-  WiFi.hostname(THINGNAME);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, pass);
 
   connectToWiFi(String("Attempting to connect to SSID: ") + String(ssid));
 
