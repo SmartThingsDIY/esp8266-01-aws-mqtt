@@ -1,13 +1,6 @@
 # Connects and Arduino board to WiFi using an ESP8266 ESP01 module, then sends data to AWS IOT through an MQTT topic
 
-## Software requirements
-
-ESP8266
-- Use ESP8266 Arduino Core version **2.5.0-beta2 or greater**
-- Will **NOT** work on ESP8266 Arduino Core v2.4.2 !!!
-
-This repo accompanies the "Connected Weather Station" [project](https://github.com/MecaHumArduino/arduino-uno-aws-weather-station) but can also be used as a standalone repo to learn how an [Arduino Uno](https://amzn.to/2RnHhPY) board can communicate with an ESP8266 WiFi module in order to gain access to the internet.
-
+This repo accompanies the ["Connected Weather Station" project](https://github.com/MecaHumArduino/arduino-uno-aws-weather-station) but can also be used as a standalone repo to learn how an [Arduino Uno](https://amzn.to/2RnHhPY) board can communicate with an ESP8266 WiFi module in order to gain access to the internet.
 
 ⚡️ COMPONENTS AND SUPPLIES
 --------------------------
@@ -47,5 +40,9 @@ The ESP8266 WiFi Module is a self-contained stack that can give any microcontrol
 
 Code Walkthrough
 --------------------
+
+- Use ESP8266 Arduino Core version **2.5.0-beta2 or greater**
+- Will **NOT** work on ESP8266 Arduino Core v2.4.2 !!!
+
 
 WIP....
