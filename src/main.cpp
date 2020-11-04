@@ -112,7 +112,7 @@ void connectToWiFi(String init_str)
 
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
-    delay(1000);
+    delay(500);
   }
 
   Serial.println(" ok!");
@@ -179,7 +179,7 @@ void setup()
   Serial.println("starting setup");
 
   UnoBoard.begin(9600); // your esp's baud rate might be different
-  delay(5000);
+  delay(2000);
 
   connectToWiFi(String("Attempting to connect to SSID: ") + String(ssid));
 
@@ -197,6 +197,7 @@ void setup()
 void loop()
 {
   now = time(nullptr);
+
   if (!client.connected()) {
     checkWiFiThenMQTT();
   } else {
